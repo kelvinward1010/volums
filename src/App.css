@@ -1,0 +1,103 @@
+.player-container {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  border-radius: 16px;
+  background: #f9fafb;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+  font-family: sans-serif;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.file-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.progress-container, .volume-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.time {
+  font-size: 12px;
+  color: #333;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Custom range input */
+.progress-bar, .volume-bar {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 4px;
+  background: #ddd;
+  flex-grow: 1;
+  cursor: pointer;
+}
+.progress-bar::-webkit-slider-thumb,
+.volume-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: none;
+}
+.progress-bar::-moz-range-thumb,
+.volume-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4f46e5;
+  cursor: pointer;
+  border: none;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
+}
+.btn.play {
+  background: #22c55e;
+}
+.btn.pause {
+  background: #ef4444;
+}
+
+.file-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn.cancel {
+  background: #9ca3af;
+  color: white;
+}
+.btn.cancel:hover {
+  background: #6b7280;
+}
