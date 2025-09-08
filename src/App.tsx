@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./App.css"; // import CSS
+import "./App.css";
 
 export default function AudioVolumeBoost() {
   const [fileName, setFileName] = useState<string | null>(null);
@@ -95,14 +95,21 @@ export default function AudioVolumeBoost() {
     <div className="player-container">
       <h1 className="title">🎵 Upload & Boost Audio Volume</h1>
 
-      <input type="file" accept="audio/*" onChange={handleFileUpload} />
-
-      {fileName && (
-        <div className="file-info">
-          <p className="file-name">Đã chọn: {fileName}</p>
-          <button onClick={handleCancelFile} className="btn cancel">❌ Cancel</button>
-        </div>
-      )}
+      {/* Upload file đẹp */}
+      <div className="upload-container">
+        <input
+          type="file"
+          accept="audio/*"
+          id="upload"
+          onChange={handleFileUpload}
+          className="file-input"
+        />
+        <label htmlFor="upload" className="btn upload">📂 Upload File</label>
+        {fileName && <span className="file-name">{fileName}</span>}
+        {fileName && (
+          <button onClick={handleCancelFile} className="btn cancel">❌</button>
+        )}
+      </div>
 
       <audio ref={audioRef} className="hidden" />
 

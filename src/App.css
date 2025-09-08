@@ -101,3 +101,32 @@
 .btn.cancel:hover {
   background: #6b7280;
 }
+
+.upload-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  justify-content: center;
+}
+
+.file-input {
+  display: none; /* ẩn input mặc định */
+}
+
+.btn.upload {
+  background: #3b82f6;
+  color: white;
+}
+.btn.upload:hover {
+  background: #2563eb;
+}
+
+.file-name {
+  font-size: 14px;
+  color: #374151;
+  max-width: 200px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
