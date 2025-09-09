@@ -104,16 +104,10 @@ export default function AudioVolumeBoost() {
       <h1 className="title">🎵 Upload & Boost Audio Volume</h1>
 
       <div className="upload-container">
-        <input
-          type="file"
-          accept="audio/*"
-          id="upload"
-          onChange={handleFileUpload}
-          className="file-input"
-        />
-        <label htmlFor="upload" className="btn upload">
-          📂 Upload File
-        </label>
+        <div style={{ position: "relative", width: "fit-content" }}>
+          <input type="file" id="upload" className="file-input" />
+          <label htmlFor="upload" className="btn upload">📂 Upload File</label>
+        </div>
         {fileName && <span className="file-name">{fileName}</span>}
         {fileName && (
           <button onClick={handleCancelFile} className="btn cancel">
