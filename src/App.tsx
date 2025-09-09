@@ -105,26 +105,26 @@ export default function AudioVolumeBoost() {
 
       <div className="upload-container">
         <div style={{ position: "relative", width: "fit-content" }}>
-  <input
-    type="file"
-    accept="audio/*"
-    id="upload"
-    onChange={handleFileUpload}
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      opacity: 0,
-      zIndex: 2,
-      cursor: "pointer",
-    }}
-  />
-  <label htmlFor="upload" className="btn upload" style={{ zIndex: 1 }}>
-    📂 Open File
-  </label>
-</div>
+          <input
+            type="file"
+            accept="audio/*,.mp3,.m4a,.wav,.aac" 
+            id="upload"
+            onChange={handleFileUpload}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              opacity: 0,
+              zIndex: 2,
+              cursor: "pointer",
+            }}
+          />
+          <label htmlFor="upload" className="btn upload" style={{ zIndex: 1 }}>
+            📂 Open File
+          </label>
+        </div>
         {fileName && <span className="file-name">{fileName}</span>}
         {fileName && (
           <button onClick={handleCancelFile} className="btn cancel">
