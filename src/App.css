@@ -1,119 +1,49 @@
-.player-container {
-  max-width: 500px;
-  margin: 30px auto;
-  padding: 20px;
-  border-radius: 16px;
-  background: #f9fafb;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  text-align: center;
+body {
+  background: linear-gradient(180deg, #0f172a, #1e293b);
+  color: white;
   font-family: sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.player-container {
+  width: 70vw;
+  background: rgba(30, 41, 59, 0.8);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
 
 .title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: bold;
-  margin-bottom: 15px;
-}
-
-.file-name {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #555;
-}
-
-.progress-container, .volume-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 15px 0;
-}
-
-.time {
-  font-size: 12px;
-  color: #333;
-  min-width: 40px;
   text-align: center;
-}
-
-/* Custom range input */
-.progress-bar, .volume-bar {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  border-radius: 4px;
-  background: #ddd;
-  flex-grow: 1;
-  cursor: pointer;
-}
-.progress-bar::-webkit-slider-thumb,
-.volume-bar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #4f46e5;
-  cursor: pointer;
-  border: none;
-}
-.progress-bar::-moz-range-thumb,
-.volume-bar::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #4f46e5;
-  cursor: pointer;
-  border: none;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  color: white;
-}
-.btn.play {
-  background: #22c55e;
-}
-.btn.pause {
-  background: #ef4444;
-}
-
-.file-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.btn.cancel {
-  background: #9ca3af;
-  color: white;
-}
-.btn.cancel:hover {
-  background: #6b7280;
+  margin-bottom: 15px;
 }
 
 .upload-container {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
   justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
 }
 
 .file-input {
-  display: none; /* ẩn input mặc định */
+  display: none;
 }
 
+.btn {
+  padding: 10px 18px;
+  border-radius: 9999px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
 .btn.upload {
   background: #3b82f6;
   color: white;
@@ -121,12 +51,109 @@
 .btn.upload:hover {
   background: #2563eb;
 }
+.btn.play {
+  background: #22c55e;
+  color: white;
+}
+.btn.play:hover {
+  background: #16a34a;
+}
+.btn.pause {
+  background: #ef4444;
+  color: white;
+}
+.btn.pause:hover {
+  background: #dc2626;
+}
+.btn.cancel {
+  background: teal;
+  color: white;
+}
+.btn.cancel:hover {
+  background: teal;
+}
 
 .file-name {
-  font-size: 14px;
-  color: #374151;
-  max-width: 200px;
+  max-width: 250px;
   text-overflow: ellipsis;
-  white-space: nowrap;
   overflow: hidden;
+  white-space: nowrap;
+  font-size: 14px;
+  color: #cbd5e1;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.time {
+  font-size: 13px;
+  min-width: 45px;
+  text-align: center;
+  color: #e2e8f0;
+}
+
+.progress-bar {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 4px;
+  background: #334155;
+  flex-grow: 1;
+  cursor: pointer;
+}
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: none;
+}
+.progress-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: none;
+}
+
+.volume-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+.volume-bar {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 4px;
+  background: #334155;
+  flex-grow: 1;
+  cursor: pointer;
+}
+.volume-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fbbf24;
+  border: none;
+}
+.volume-bar::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fbbf24;
+  border: none;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
 }

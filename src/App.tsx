@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
+import Waveform from "./components/Waveform";
 
 export default function AudioVolumeBoost() {
   const [fileName, setFileName] = useState<string | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [volume, setVolume] = useState<number>(1);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
@@ -16,18 +18,21 @@ export default function AudioVolumeBoost() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const url = URL.createObjectURL(file);
     setFileName(file.name);
 
-    if (audioRef.current) {
-      audioRef.current.src = url;
-      audioRef.current.load();
-    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      let url: string;
+      if (typeof ev.target?.result === "string") {
+        url = ev.target.result;
+      } else {
+        url = URL.createObjectURL(new Blob([ev.target?.result as ArrayBuffer]));
+      }
+      setFileUrl(url);
 
-    if (!audioContextRef.current) {
-      const ctx = new AudioContext();
-      audioContextRef.current = ctx;
-      if (audioRef.current) {
+      if (!audioContextRef.current && audioRef.current) {
+        const ctx = new AudioContext();
+        audioContextRef.current = ctx;
         const source = ctx.createMediaElementSource(audioRef.current);
         const gainNode = ctx.createGain();
 
@@ -37,7 +42,9 @@ export default function AudioVolumeBoost() {
         sourceRef.current = source;
         gainNodeRef.current = gainNode;
       }
-    }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleCancelFile = () => {
@@ -45,6 +52,7 @@ export default function AudioVolumeBoost() {
       audioRef.current.pause();
       audioRef.current.src = "";
     }
+    setFileUrl(null);
     setFileName(null);
     setDuration(0);
     setCurrentTime(0);
@@ -95,7 +103,6 @@ export default function AudioVolumeBoost() {
     <div className="player-container">
       <h1 className="title">🎵 Upload & Boost Audio Volume</h1>
 
-      {/* Upload file đẹp */}
       <div className="upload-container">
         <input
           type="file"
@@ -104,14 +111,20 @@ export default function AudioVolumeBoost() {
           onChange={handleFileUpload}
           className="file-input"
         />
-        <label htmlFor="upload" className="btn upload">📂 Upload File</label>
+        <label htmlFor="upload" className="btn upload">
+          📂 Upload File
+        </label>
         {fileName && <span className="file-name">{fileName}</span>}
         {fileName && (
-          <button onClick={handleCancelFile} className="btn cancel">❌</button>
+          <button onClick={handleCancelFile} className="btn cancel">
+            x
+          </button>
         )}
       </div>
 
       <audio ref={audioRef} className="hidden" />
+
+      {fileUrl && <Waveform audioRef={audioRef} fileUrl={fileUrl} />}
 
       {duration > 0 && (
         <div className="progress-container">
@@ -134,7 +147,7 @@ export default function AudioVolumeBoost() {
         <input
           type="range"
           min="0"
-          max="3"
+          max="4"
           step="0.1"
           value={volume}
           onChange={handleVolumeChange}
@@ -145,8 +158,12 @@ export default function AudioVolumeBoost() {
 
       {fileName && (
         <div className="controls">
-          <button onClick={handlePlay} className="btn play">▶ Play</button>
-          <button onClick={handlePause} className="btn pause">⏸ Pause</button>
+          <button onClick={handlePlay} className="btn play">
+            ▶ Play
+          </button>
+          <button onClick={handlePause} className="btn pause">
+            ⏸ Pause
+          </button>
         </div>
       )}
     </div>
