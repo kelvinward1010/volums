@@ -8,6 +8,7 @@ export default function AudioVolumeBoost() {
   const [volume, setVolume] = useState<number>(1);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -20,31 +21,23 @@ export default function AudioVolumeBoost() {
 
     setFileName(file.name);
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      let url: string;
-      if (typeof ev.target?.result === "string") {
-        url = ev.target.result;
-      } else {
-        url = URL.createObjectURL(new Blob([ev.target?.result as ArrayBuffer]));
-      }
-      setFileUrl(url);
+    // ObjectURL để phát audio
+    const url = URL.createObjectURL(file);
+    setFileUrl(url);
 
-      if (!audioContextRef.current && audioRef.current) {
-        const ctx = new AudioContext();
-        audioContextRef.current = ctx;
-        const source = ctx.createMediaElementSource(audioRef.current);
-        const gainNode = ctx.createGain();
+    // Khởi tạo AudioContext và GainNode
+    if (!audioContextRef.current && audioRef.current) {
+      const ctx = new AudioContext();
+      audioContextRef.current = ctx;
+      const source = ctx.createMediaElementSource(audioRef.current);
+      const gainNode = ctx.createGain();
 
-        source.connect(gainNode);
-        gainNode.connect(ctx.destination);
+      source.connect(gainNode);
+      gainNode.connect(ctx.destination);
 
-        sourceRef.current = source;
-        gainNodeRef.current = gainNode;
-      }
-    };
-
-    reader.readAsDataURL(file);
+      sourceRef.current = source;
+      gainNodeRef.current = gainNode;
+    }
   };
 
   const handleCancelFile = () => {
@@ -52,10 +45,14 @@ export default function AudioVolumeBoost() {
       audioRef.current.pause();
       audioRef.current.src = "";
     }
+    if (fileUrl) {
+      URL.revokeObjectURL(fileUrl);
+    }
     setFileUrl(null);
     setFileName(null);
     setDuration(0);
     setCurrentTime(0);
+    setIsPlaying(false);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,13 +63,16 @@ export default function AudioVolumeBoost() {
     }
   };
 
-  const handlePlay = () => {
-    audioContextRef.current?.resume();
-    audioRef.current?.play();
-  };
-
-  const handlePause = () => {
-    audioRef.current?.pause();
+  const togglePlayPause = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioContextRef.current?.resume();
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
   };
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,25 +89,29 @@ export default function AudioVolumeBoost() {
 
     const timeUpdate = () => setCurrentTime(audio.currentTime);
     const loadedMeta = () => setDuration(audio.duration);
+    const onEnded = () => setIsPlaying(false);
 
     audio.addEventListener("timeupdate", timeUpdate);
     audio.addEventListener("loadedmetadata", loadedMeta);
+    audio.addEventListener("ended", onEnded);
 
     return () => {
       audio.removeEventListener("timeupdate", timeUpdate);
       audio.removeEventListener("loadedmetadata", loadedMeta);
+      audio.removeEventListener("ended", onEnded);
     };
   }, []);
 
   return (
     <div className="player-container">
-      <h1 className="title">🎵 Upload & Boost Audio Volume</h1>
+      <h1 className="title">🎵 オーディオ音量ブースト</h1>
 
+      {/* ファイルアップロード */}
       <div className="upload-container">
         <div style={{ position: "relative", width: "fit-content" }}>
           <input
             type="file"
-            accept="audio/*,.mp3,.m4a,.wav,.aac" 
+            accept="audio/*,.mp3,.m4a,.wav,.aac"
             id="upload"
             onChange={handleFileUpload}
             style={{
@@ -122,21 +126,24 @@ export default function AudioVolumeBoost() {
             }}
           />
           <label htmlFor="upload" className="btn upload" style={{ zIndex: 1 }}>
-            📂 Open File
+            📂 ファイルを開く
           </label>
         </div>
         {fileName && <span className="file-name">{fileName}</span>}
         {fileName && (
           <button onClick={handleCancelFile} className="btn cancel">
-            x
+            ✖ 削除
           </button>
         )}
       </div>
 
-      <audio ref={audioRef} className="hidden" />
+      {/* 非表示のオーディオ要素 */}
+      <audio ref={audioRef} src={fileUrl || ""} className="hidden" />
 
+      {/* 波形ビジュアル */}
       {fileUrl && <Waveform audioRef={audioRef} fileUrl={fileUrl} />}
 
+      {/* 再生バー */}
       {duration > 0 && (
         <div className="progress-container">
           <span className="time">{formatTime(currentTime)}</span>
@@ -153,8 +160,9 @@ export default function AudioVolumeBoost() {
         </div>
       )}
 
+      {/* 音量調整 */}
       <div className="volume-container">
-        <label>Âm lượng</label>
+        <label>音量</label>
         <input
           type="range"
           min="0"
@@ -167,13 +175,14 @@ export default function AudioVolumeBoost() {
         <span>{(volume * 100).toFixed(0)}%</span>
       </div>
 
+      {/* 再生・一時停止ボタン */}
       {fileName && (
         <div className="controls">
-          <button onClick={handlePlay} className="btn play">
-            ▶ Play
-          </button>
-          <button onClick={handlePause} className="btn pause">
-            ⏸ Pause
+          <button
+            onClick={togglePlayPause}
+            className={`btn ${isPlaying ? "pause" : "play"}`}
+          >
+            {isPlaying ? "⏸ 一時停止" : "▶ 再生"}
           </button>
         </div>
       )}
