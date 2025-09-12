@@ -9,6 +9,7 @@ export default function AudioVolumeBoost() {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [speed, setSpeed] = useState<number>(1); // tốc độ phát mặc định 1.0x
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -21,11 +22,9 @@ export default function AudioVolumeBoost() {
 
     setFileName(file.name);
 
-    // ObjectURL để phát audio
     const url = URL.createObjectURL(file);
     setFileUrl(url);
 
-    // Khởi tạo AudioContext và GainNode
     if (!audioContextRef.current && audioRef.current) {
       const ctx = new AudioContext();
       audioContextRef.current = ctx;
@@ -80,6 +79,14 @@ export default function AudioVolumeBoost() {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
+    }
+  };
+
+  const handleSpeedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSpeed = parseFloat(e.target.value);
+    setSpeed(newSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = newSpeed;
     }
   };
 
@@ -173,6 +180,21 @@ export default function AudioVolumeBoost() {
           className="volume-bar"
         />
         <span>{(volume * 100).toFixed(0)}%</span>
+      </div>
+
+      {/* 再生速度調整 */}
+      <div className="speed-container">
+        <label>再生速度</label>
+        <input
+          type="range"
+          min="0.5"
+          max="2"
+          step="0.1"
+          value={speed}
+          onChange={handleSpeedChange}
+          className="speed-bar"
+        />
+        <span>{speed.toFixed(1)}x</span>
       </div>
 
       {/* 再生・一時停止ボタン */}

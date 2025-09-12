@@ -154,3 +154,17 @@ body {
   justify-content: center;
   gap: 15px;
 }
+
+.speed-container {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+.speed-bar {
+  flex: 1;
+  accent-color: #f59e0b;
+  cursor: pointer;
+}
