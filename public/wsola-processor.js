@@ -1,4 +1,3 @@
-// wsola-processor.js
 class WSOLAProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
@@ -6,8 +5,9 @@ class WSOLAProcessor extends AudioWorkletProcessor {
     this.speed = 1.0;
 
     this.port.onmessage = (event) => {
-      if (event.data.type === "speed") {
-        this.speed = event.data.value;
+      const { type, value } = event.data;
+      if (type === "speed") {
+        this.speed = value;
       }
     };
   }
@@ -16,27 +16,34 @@ class WSOLAProcessor extends AudioWorkletProcessor {
     const input = inputs[0];
     const output = outputs[0];
 
-    if (input[0]) {
-      // push input PCM vào buffer
-      this.buffer.push(...input[0]);
+    if (!input || input.length === 0) return true;
+
+    // Giả sử có ít nhất 1 kênh
+    const inputChannel = input[0];
+    if (inputChannel) {
+      this.buffer.push(...inputChannel);
     }
 
-    // frame size ~30ms
-    const frameSize = 128; // nhỏ để realtime
+    const frameSize = 128;
     const hopIn = Math.floor(frameSize * this.speed);
-    const hopOut = frameSize;
+    const outL = output[0]; // kênh trái
+    const outR = output[1] || outL; // nếu có kênh phải
 
-    let outBuffer = output[0];
-
-    for (let i = 0; i < outBuffer.length; i++) {
+    for (let i = 0; i < outL.length; i++) {
       if (this.buffer.length >= hopIn) {
-        outBuffer[i] = this.buffer.shift();
+        const sample = this.buffer.shift() || 0;
+        // ghi ra tất cả kênh
+        for (let ch = 0; ch < output.length; ch++) {
+          output[ch][i] = sample;
+        }
       } else {
-        outBuffer[i] = 0;
+        for (let ch = 0; ch < output.length; ch++) {
+          output[ch][i] = 0;
+        }
       }
     }
 
-    return true; // keep processor alive
+    return true;
   }
 }
 

@@ -17,6 +17,32 @@ export default function AudioVolumeBoost() {
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const wsolaNodeRef = useRef<AudioWorkletNode | null>(null);
 
+  // 🎵 Hàm init audio graph
+  const initAudioGraph = async () => {
+    if (!audioRef.current) return;
+    if (audioContextRef.current) return; // đã init rồi thì bỏ qua
+
+    const ctx = new AudioContext();
+    audioContextRef.current = ctx;
+
+    // load worklet
+    await ctx.audioWorklet.addModule("/wsola-processor.js");
+
+    // tạo các node
+    const sourceNode = ctx.createMediaElementSource(audioRef.current);
+    const wsolaNode = new AudioWorkletNode(ctx, "wsola-processor");
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = volume;
+
+    // connect graph: source → WSOLA → Gain → output
+    sourceNode.connect(wsolaNode).connect(gainNode).connect(ctx.destination);
+
+    // lưu ref để điều khiển
+    sourceRef.current = sourceNode;
+    wsolaNodeRef.current = wsolaNode;
+    gainNodeRef.current = gainNode;
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -25,45 +51,7 @@ export default function AudioVolumeBoost() {
     const url = URL.createObjectURL(file);
     setFileUrl(url);
 
-    // Reset input => đảm bảo chọn lại cùng file vẫn trigger onChange
     e.target.value = "";
-
-    // Khởi tạo audio graph nếu chưa có
-    if (!audioContextRef.current && audioRef.current) {
-      const ctx = new AudioContext();
-      audioContextRef.current = ctx;
-
-      await ctx.audioWorklet.addModule("/wsola-processor.js");
-
-      const source = ctx.createMediaElementSource(audioRef.current);
-      const gainNode = ctx.createGain();
-      const wsolaNode = new AudioWorkletNode(ctx, "wsola-processor");
-
-      source.connect(gainNode).connect(wsolaNode).connect(ctx.destination);
-
-      sourceRef.current = source;
-      gainNodeRef.current = gainNode;
-      wsolaNodeRef.current = wsolaNode;
-    }
-
-    if (audioRef.current) {
-      audioRef.current.onloadedmetadata = () => {
-        // Giữ lại speed cũ
-        audioRef.current!.playbackRate = speed;
-        if (wsolaNodeRef.current) {
-          wsolaNodeRef.current.port.postMessage({
-            type: "speed",
-            value: speed,
-          });
-        }
-
-        // Reset state về đầu file, chờ user bấm Play
-        audioRef.current!.currentTime = 0;
-        setCurrentTime(0);
-        setDuration(audioRef.current!.duration || 0);
-        setIsPlaying(false);
-      };
-    }
   };
 
   const handleCancelFile = () => {
@@ -71,9 +59,8 @@ export default function AudioVolumeBoost() {
       audioRef.current.pause();
       audioRef.current.src = "";
     }
-    if (fileUrl) {
-      URL.revokeObjectURL(fileUrl);
-    }
+    if (fileUrl) URL.revokeObjectURL(fileUrl);
+
     setFileUrl(null);
     setFileName(null);
     setDuration(0);
@@ -113,62 +100,60 @@ export default function AudioVolumeBoost() {
     const newSpeed = parseFloat(e.target.value);
     setSpeed(newSpeed);
 
-    // 1. Gửi cho Worklet
     if (wsolaNodeRef.current) {
       wsolaNodeRef.current.port.postMessage({ type: "speed", value: newSpeed });
     }
-
-    // 2. Cập nhật luôn playbackRate của audio element
     if (audioRef.current) {
       audioRef.current.playbackRate = newSpeed;
     }
   };
 
-  // Chỉ lo update time + ended
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (!isPlaying || !audioContextRef.current) return;
 
-    const timeUpdate = () => setCurrentTime(audio.currentTime);
-    const onEnded = () => setIsPlaying(false);
+    let frameId: number;
 
-    audio.addEventListener("timeupdate", timeUpdate);
-    audio.addEventListener("ended", onEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", timeUpdate);
-      audio.removeEventListener("ended", onEnded);
+    const update = () => {
+      setCurrentTime(audioRef.current?.currentTime || 0);
+      frameId = requestAnimationFrame(update);
     };
-  }, []);
 
-  // Xử lý khi file hoặc speed thay đổi
+    update();
+
+    return () => cancelAnimationFrame(frameId);
+  }, [isPlaying]);
+
+  // Khi có file mới → init audio graph
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !fileUrl) return;
+    if (fileUrl && audioRef.current) {
+      initAudioGraph();
 
-    const applySettings = () => {
-      audio.playbackRate = speed;
-      if (wsolaNodeRef.current) {
-        wsolaNodeRef.current.port.postMessage({ type: "speed", value: speed });
-      }
-      audio.currentTime = 0;
-      setCurrentTime(0);
-      setDuration(audio.duration || 0);
-      setIsPlaying(false);
-    };
+      const applySettings = () => {
+        audioRef.current!.playbackRate = speed;
+        if (wsolaNodeRef.current) {
+          wsolaNodeRef.current.port.postMessage({
+            type: "speed",
+            value: speed,
+          });
+        }
+        audioRef.current!.currentTime = 0;
+        setCurrentTime(0);
+        setDuration(audioRef.current!.duration || 0);
+        setIsPlaying(false);
+      };
 
-    audio.addEventListener("loadedmetadata", applySettings);
-
-    return () => {
-      audio.removeEventListener("loadedmetadata", applySettings);
-    };
+      audioRef.current.addEventListener("loadedmetadata", applySettings);
+      return () => {
+        audioRef.current?.removeEventListener("loadedmetadata", applySettings);
+      };
+    }
   }, [fileUrl, speed]);
 
   return (
     <div className="player-container">
       <h1 className="title">🎵 オーディオ音量ブースト</h1>
 
-      {/* ファイルアップロード */}
+      {/* Upload */}
       <div className="upload-container">
         <div style={{ position: "relative", width: "fit-content" }}>
           <input
@@ -199,13 +184,23 @@ export default function AudioVolumeBoost() {
         )}
       </div>
 
-      {/* 非表示のオーディオ要素 */}
-      {fileUrl && <audio ref={audioRef} src={fileUrl} className="hidden" />}
+      {/* Hidden audio */}
+      {fileUrl && (
+        <audio
+          ref={audioRef}
+          src={fileUrl}
+          className="hidden"
+          onEnded={() => {
+            setIsPlaying(false);
+            setCurrentTime(0);
+          }}
+        />
+      )}
 
-      {/* 波形ビジュアル */}
+      {/* Waveform */}
       {fileUrl && <Waveform audioRef={audioRef} fileUrl={fileUrl} />}
 
-      {/* 再生バー */}
+      {/* Progress */}
       {duration > 0 && (
         <div className="progress-container">
           <span className="time">{formatTime(currentTime)}</span>
@@ -222,7 +217,7 @@ export default function AudioVolumeBoost() {
         </div>
       )}
 
-      {/* 音量調整 */}
+      {/* Volume */}
       <div className="volume-container">
         <label>音量</label>
         <input
@@ -237,7 +232,7 @@ export default function AudioVolumeBoost() {
         <span>{(volume * 100).toFixed(0)}%</span>
       </div>
 
-      {/* 再生速度調整 */}
+      {/* Speed */}
       <div className="speed-container">
         <label>再生速度</label>
         <input
@@ -252,7 +247,7 @@ export default function AudioVolumeBoost() {
         <span>{speed.toFixed(1)}x</span>
       </div>
 
-      {/* 再生・一時停止ボタン */}
+      {/* Controls */}
       {fileName && (
         <div className="controls">
           <button
