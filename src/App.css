@@ -152,7 +152,8 @@ body {
 .controls {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .speed-container {
@@ -168,3 +169,13 @@ body {
   accent-color: #f59e0b;
   cursor: pointer;
 }
+
+.footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff; /* chữ trắng rõ */
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.6); /* thêm bóng để nổi bật trên nền tối */
+}
+

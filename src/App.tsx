@@ -61,6 +61,13 @@ export default function AudioVolumeBoost() {
     }
     if (fileUrl) URL.revokeObjectURL(fileUrl);
 
+    // reset refs
+    audioContextRef.current?.close();
+    audioContextRef.current = null;
+    gainNodeRef.current = null;
+    sourceRef.current = null;
+    wsolaNodeRef.current = null;
+
     setFileUrl(null);
     setFileName(null);
     setDuration(0);
@@ -76,14 +83,20 @@ export default function AudioVolumeBoost() {
     }
   };
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     if (!audioRef.current) return;
+
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioContextRef.current?.resume();
-      audioRef.current.play();
+      if (!audioContextRef.current) {
+        await initAudioGraph();
+      }
+
+      await audioContextRef.current?.resume(); // cần await
+
+      await audioRef.current.play();
       setIsPlaying(true);
     }
   };
@@ -258,6 +271,11 @@ export default function AudioVolumeBoost() {
           </button>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="footer">
+        © {new Date().getFullYear()} Kelvin Ward
+      </footer>
     </div>
   );
 }
